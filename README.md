@@ -4,9 +4,9 @@ A small Angular (v22, standalone + signals) single-page app for the DoubleCheck
 backend. It ships as an nginx Docker image and deploys to the same GCP VM as the
 API via GitHub Actions, mirroring the backend's CI/CD.
 
-> **Note:** the chat / `/api/conversations` endpoints are intentionally **not**
-> used anywhere in this app — that part of the API has a known bug. The frontend
-> only calls auth, account, categories, professionals, admin and verification.
+> **Note on conversations:** only the **known-good** conversation endpoints are
+> used — create conversation, send message, and get messages. The broken
+> `GET /api/conversations` (list) endpoint is **never** called anywhere in the app.
 
 ## What's included
 
@@ -15,10 +15,19 @@ API via GitHub Actions, mirroring the backend's CI/CD.
 | Login         | `/login`         | `POST /api/auth/login`                    |
 | Register      | `/register`      | `POST /api/auth/register`                 |
 | Dashboard     | `/dashboard`     | `GET /api/auth/me`, `GET /api/account/balance` |
+| Ask AI (chat) | `/chat`          | `POST /api/conversations`, `POST /api/conversations/{id}/messages` |
 | Categories    | `/categories`    | `GET/POST/PUT/DELETE /api/categories`     |
 | Professional  | `/professional`  | `GET/POST/PUT /api/professionals/...`     |
 | Verification  | `/verification`  | `GET/POST /api/verification/...`          |
 | Admin         | `/admin`         | `GET/POST/DELETE /api/admin/...`          |
+
+### Ask AI → Double-check flow
+
+On `/chat` the user picks a category, asks a question, and gets an AI answer.
+Each answer can be **accepted** (UI only, no backend call) or **double-checked**:
+that carries the category, question and AI answer to the `/verification` page,
+pre-filled, where the user picks an expert in that same category and submits the
+verification request (linking the source message).
 
 Admin and Professional sections appear only for users holding those roles
 (role-aware nav + route guards). The JWT is stored client-side and attached to

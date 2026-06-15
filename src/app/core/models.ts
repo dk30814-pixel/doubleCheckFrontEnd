@@ -168,6 +168,48 @@ export interface VerificationSessionResponse {
   createdAt: string;
 }
 
+// ---- Conversations / chat ----
+// IMPORTANT: only create-conversation, send-message and get-messages are used.
+// The list endpoint (GET /api/conversations) is NOT called — it is the broken one.
+export interface CreateConversationRequest {
+  title: string;
+  categoryId: string;
+}
+
+export interface ConversationResponse {
+  id: string;
+  title: string;
+  categoryId: string;
+  categoryName: string;
+  createdAt: string;
+}
+
+export interface SendMessageRequest {
+  content: string;
+}
+
+export interface MessageResponse {
+  id: string;
+  conversationId: string;
+  sender: string; // "User" | "Ai"
+  content: string;
+  createdAt: string;
+}
+
+export interface SendMessageResponse {
+  userMessage: MessageResponse;
+  aiMessage: MessageResponse;
+}
+
+/** Payload handed from the chat page to the verification page when "Double-check" is chosen. */
+export interface DoubleCheckPrefill {
+  categoryId: string;
+  categoryName: string;
+  questionText: string;
+  aiAnswerText: string;
+  sourceMessageId: string | null;
+}
+
 export function sessionStatusLabel(status: number): string {
   return status === SessionStatus.Closed ? 'Closed' : 'Open';
 }

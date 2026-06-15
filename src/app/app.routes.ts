@@ -17,6 +17,11 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/dashboard/dashboard').then((m) => m.DashboardComponent),
   },
   {
+    path: 'chat',
+    canActivate: [authGuard],
+    loadComponent: () => import('./pages/chat/chat').then((m) => m.ChatComponent),
+  },
+  {
     path: 'categories',
     canActivate: [authGuard],
     loadComponent: () => import('./pages/categories/categories').then((m) => m.CategoriesComponent),

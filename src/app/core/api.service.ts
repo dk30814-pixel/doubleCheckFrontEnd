@@ -9,12 +9,17 @@ import {
   ApplyProfessionalRequest,
   BalanceResponse,
   CategoryResponse,
+  ConversationResponse,
   CreateCategoryRequest,
+  CreateConversationRequest,
   CreateVerificationSessionRequest,
   ExpertMatchResponse,
+  MessageResponse,
   ProfessionalApplicationResponse,
   ProfessionalProfileResponse,
   ResolveVerificationSessionRequest,
+  SendMessageRequest,
+  SendMessageResponse,
   UpdateCategoryRequest,
   UpdateProfessionalRequest,
   VerificationSessionResponse,
@@ -119,6 +124,26 @@ export class ApiService {
 
   adminStats(): Observable<AdminStatsResponse> {
     return this.http.get<AdminStatsResponse>(`${this.base}/admin/stats`);
+  }
+
+  // ---- Conversations / chat ----
+  // NOTE: GET /api/conversations (list) is intentionally NOT implemented here —
+  // it is the endpoint that returns 500. We only create, send, and read messages.
+  createConversation(body: CreateConversationRequest): Observable<ConversationResponse> {
+    return this.http.post<ConversationResponse>(`${this.base}/conversations`, body);
+  }
+
+  sendMessage(conversationId: string, body: SendMessageRequest): Observable<SendMessageResponse> {
+    return this.http.post<SendMessageResponse>(
+      `${this.base}/conversations/${conversationId}/messages`,
+      body,
+    );
+  }
+
+  getMessages(conversationId: string): Observable<MessageResponse[]> {
+    return this.http.get<MessageResponse[]>(
+      `${this.base}/conversations/${conversationId}/messages`,
+    );
   }
 
   // ---- Verification ----

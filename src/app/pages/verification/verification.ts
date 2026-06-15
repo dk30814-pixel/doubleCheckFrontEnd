@@ -4,6 +4,7 @@ import { DatePipe } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import { AuthService } from '../../core/auth.service';
 import { ApiService } from '../../core/api.service';
+import { HandoffService } from '../../core/handoff.service';
 import { readError } from '../../core/http-error';
 import {
   CategoryResponse,
@@ -29,9 +30,12 @@ import {
       <div class="alert success">{{ notice() }}</div>
     }
 
-    @if (canRequest()) {
+    @if (canRequest() || prefillActive()) {
       <div class="card">
         <h2>Request a verification</h2>
+        @if (prefillActive()) {
+          <p class="muted">Carried over from your AI chat — just choose an expert below.</p>
+        }
         <label for="cat">Category</label>
         <select id="cat" name="cat" [(ngModel)]="categoryId" (change)="findExperts()">
           <option value="">— choose —</option>
@@ -126,7 +130,9 @@ import {
 export class VerificationComponent implements OnInit {
   protected readonly auth = inject(AuthService);
   private readonly api = inject(ApiService);
+  private readonly handoff = inject(HandoffService);
 
+  readonly prefillActive = signal(false);
   readonly categories = signal<CategoryResponse[]>([]);
   readonly experts = signal<ExpertMatchResponse[]>([]);
   readonly mine = signal<VerificationSessionResponse[]>([]);
@@ -140,6 +146,7 @@ export class VerificationComponent implements OnInit {
   professionalUserId = '';
   questionText = '';
   aiAnswerText = '';
+  sourceMessageId: string | null = null;
 
   readonly statusLabel = sessionStatusLabel;
   readonly outcomeLabel = sessionOutcomeLabel;
@@ -158,6 +165,19 @@ export class VerificationComponent implements OnInit {
     this.loadMine();
     if (this.auth.isProfessional()) {
       this.loadIncoming();
+    }
+
+    // If the user arrived here via "Double-check" from the chat page, pre-fill
+    // the request with the conversation's category + question + AI answer.
+    const prefill = this.handoff.take();
+    if (prefill) {
+      this.prefillActive.set(true);
+      this.categoryId = prefill.categoryId;
+      this.questionText = prefill.questionText;
+      this.aiAnswerText = prefill.aiAnswerText;
+      this.sourceMessageId = prefill.sourceMessageId;
+      this.notice.set(`Pick an expert in "${prefill.categoryName}" to double-check this answer.`);
+      this.findExperts();
     }
   }
 
@@ -206,6 +226,7 @@ export class VerificationComponent implements OnInit {
         categoryId: this.categoryId,
         questionText: this.questionText.trim(),
         aiAnswerText: this.aiAnswerText.trim(),
+        sourceMessageId: this.sourceMessageId,
       })
       .subscribe({
         next: () => {
@@ -213,6 +234,8 @@ export class VerificationComponent implements OnInit {
           this.saving.set(false);
           this.questionText = '';
           this.aiAnswerText = '';
+          this.sourceMessageId = null;
+          this.prefillActive.set(false);
           this.loadMine();
         },
         error: (err: HttpErrorResponse) => {
