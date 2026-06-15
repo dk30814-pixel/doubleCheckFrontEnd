@@ -1,0 +1,28 @@
+<header class="topbar">
+  <a class="brand" routerLink="/dashboard">Double<span>Check</span></a>
+
+  @if (auth.isLoggedIn()) {
+    <nav class="nav">
+      <a routerLink="/dashboard" routerLinkActive="active">Dashboard</a>
+      <a routerLink="/categories" routerLinkActive="active">Categories</a>
+      <a routerLink="/professional" routerLinkActive="active">Professional</a>
+      <a routerLink="/verification" routerLinkActive="active">Verification</a>
+      @if (auth.isAdmin()) {
+        <a routerLink="/admin" routerLinkActive="active">Admin</a>
+      }
+    </nav>
+    <div class="account">
+      <span class="who">{{ auth.user()?.displayName }}</span>
+      <button class="btn ghost" (click)="logout()">Log out</button>
+    </div>
+  } @else {
+    <nav class="nav">
+      <a routerLink="/login" routerLinkActive="active">Log in</a>
+      <a routerLink="/register" routerLinkActive="active">Register</a>
+    </nav>
+  }
+</header>
+
+<main class="content">
+  <router-outlet />
+</main>
